@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -40,5 +41,22 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     await this.usersRepository.delete({ id });
+  }
+
+  async findByUsername(username: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { username } });
+    if (!user) {
+      throw new NotFoundException(`User with username ${username} not found`);
+    }
+    return user;
+  }
+
+  async validatePassword(username: string, password: string): Promise<User> {
+    const user = await this.findByUsername(username);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new NotFoundException('Invalid password');
+    }
+    return user;
   }
 }
