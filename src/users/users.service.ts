@@ -15,7 +15,9 @@ export class UsersService {
     user.username = createUserDto.username;
     user.first_name = createUserDto.first_name;
     user.last_name = createUserDto.last_name;
-    return await this.usersRepository.save(user);
+    user.password = createUserDto.password;
+    const { password, ...userWithoutPassword } = await this.usersRepository.save(user);
+    return await this.usersRepository.save(userWithoutPassword);
   }
 
   async findAll(): Promise<User[]> {
@@ -23,7 +25,7 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({ where: { id }, select: ['username', 'first_name', 'last_name'] });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
@@ -44,7 +46,7 @@ export class UsersService {
   }
 
   async findByUsername(username: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { username } });
+    const user = await this.usersRepository.findOne({ where: { username }, select: ['id', 'username', 'first_name', 'last_name'] });
     if (!user) {
       throw new NotFoundException(`User with username ${username} not found`);
     }
