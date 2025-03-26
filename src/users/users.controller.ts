@@ -3,8 +3,12 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../roles/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../roles/roles.enum';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -14,6 +18,7 @@ export class UsersController {
   }
 
   @Get()
+  @Roles(UserRole.Admin)
   findAll() {
     return this.usersService.findAll();
   }
@@ -23,13 +28,11 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('username/:username')
   findByUsername(@Param('username') username: string) {
     return this.usersService.findByUsername(username);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
